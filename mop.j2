@@ -1,0 +1,158 @@
+#################################################################################################################################################################################################
+##########################################################################################  PRE CHECK  ##########################################################################################
+#################################################################################################################################################################################################
+
+
+{{CORE01_HOSTNAME|upper}} {{CORE02_HOSTNAME|upper}} {{MGT_HOSTNAME|upper}}
+
+show ip int bri
+{% if IGP == 'OSPF' -%}
+show ip ospf neighbor
+{% elif IGP == 'ISIS' -%}
+show isis neighbor
+{% endif -%}
+show ip bgp sum
+show ip bgp
+
+
+#################################################################################################################################################################################################
+##########################################################################################  PROCEDURE  ##########################################################################################
+#################################################################################################################################################################################################
+
+
+{{CORE01_HOSTNAME|upper}}
+
+conf t
+!
+hostname {{CORE01_HOSTNAME}}
+!
+snmp-server contact {{SNMP_CONTACT}}
+!
+no ip domain lookup
+!
+line con 0
+ logging synchronous
+ exec-timeout 0 0
+ exit
+!
+int lo0
+ ip address {{CORE01_LOOPBACK0}} 255.255.255.255
+ {% if IGP == 'OSPF' -%}
+ ip ospf {{IGP_ID}} area 0
+ {% elif IGP == 'ISIS' -%}
+ ip router isis {{IGP_ID}}
+ {% endif -%}
+ exit
+!
+int l100
+ ip address {{CORE01_LOOPBACK100}} 255.255.255.255
+ exit
+!
+int {{CORE01_CORE02_PORT}}
+ ip address {{CORE01_CORE02}} 255.255.255.252
+ {% if IGP == 'OSPF' -%}
+ ip ospf {{IGP_ID}} area 0
+ {% elif IGP == 'ISIS' -%}
+ ip router isis {{IGP_ID}}
+ {% endif -%}
+ no shutdown
+ exit
+!
+{% if IGP == 'OSPF' -%}
+router ospf {{IGP_ID}}
+ router-id {{CORE01_LOOPBACK0}}
+ exit
+{% elif IGP == 'ISIS' -%}
+router isis {{IGP_ID}}
+ net 49.0001.{{CORE01_ISO}}.00
+ passive-interface Loopback0
+ is-type level-2-only
+ exit
+{% endif -%}
+!
+router bgp {{BGP_ASN}}
+ neighbor {{CORE02_LOOPBACK0}} remote-as {{BGP_ASN}}
+ neighbor {{CORE02_LOOPBACK0}} update-source lo0
+ redistribute connected
+ exit
+!
+end
+wr
+
+---------------------------------------------------------------
+
+{{CORE02_HOSTNAME|upper}}
+
+conf t
+!
+hostname {{CORE02_HOSTNAME}}
+!
+snmp-server contact {{SNMP_CONTACT}}
+!
+no ip domain lookup
+!
+line con 0
+ logging synchronous
+ exec-timeout 0 0
+ exit
+!
+int lo0
+ ip address {{CORE02_LOOPBACK0}} 255.255.255.255
+ {% if IGP == 'OSPF' -%}
+ ip ospf {{IGP_ID}} area 0
+ {% elif IGP == 'ISIS' -%}
+ ip router isis {{IGP_ID}}
+ {% endif -%}
+ exit
+!
+int l100
+ ip address {{CORE02_LOOPBACK100}} 255.255.255.255
+ exit
+!
+int {{CORE02_CORE01_PORT}}
+ ip address {{CORE02_CORE01}} 255.255.255.252
+ {% if IGP == 'OSPF' -%}
+ ip ospf {{IGP_ID}} area 0
+ {% elif IGP == 'ISIS' -%}
+ ip router isis {{IGP_ID}}
+ {% endif -%}
+ no shutdown
+ exit
+!
+{% if IGP == 'OSPF' -%}
+router ospf {{IGP_ID}}
+ router-id {{CORE02_LOOPBACK0}}
+ exit
+{% elif IGP == 'ISIS' -%}
+router isis {{IGP_ID}}
+ net 49.0001.{{CORE02_ISO}}.00
+ passive-interface Loopback0
+ is-type level-2-only
+ exit
+{% endif -%}
+!
+router bgp {{BGP_ASN}}
+ neighbor {{CORE01_LOOPBACK0}} remote-as {{BGP_ASN}}
+ neighbor {{CORE01_LOOPBACK0}} update-source lo0
+ redistribute connected
+ exit
+!
+end
+wr
+
+
+#################################################################################################################################################################################################
+##########################################################################################  POST CHECK  #########################################################################################
+#################################################################################################################################################################################################
+
+
+{{CORE01_HOSTNAME|upper}} {{CORE02_HOSTNAME|upper}} {{MGT_HOSTNAME|upper}}
+
+show ip int bri
+{% if IGP == 'OSPF' -%}
+show ip ospf neighbor
+{% elif IGP == 'ISIS' -%}
+show isis neighbor
+{% endif -%}
+show ip bgp sum
+show ip bgp

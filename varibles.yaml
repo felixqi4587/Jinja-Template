@@ -1,0 +1,17 @@
+---
+- ###################### GENERAL VARIBLES ######################
+  SNMP_CONTACT: 'XiaoYuNetwork'
+  BGP_ASN: '100'
+  IGP: 'ISIS'  # OSPF/ISIS
+  IGP_ID: '100'
+  ###################### CORE01 SPECIFICS ######################
+  CORE01_HOSTNAME: 'core01'
+  CORE01_LOOPBACK0: '1.1.1.1'
+  CORE01_LOOPBACK100: '100.1.1.1'
+  CORE01_CORE02_PORT: 'G1'
+  CORE01_CORE02_NET: '12.1.1.0/30'
+  ###################### CORE02 SPECIFICS ######################
+  CORE02_HOSTNAME: 'core02'
+  CORE02_LOOPBACK0: '2.2.2.2'
+  CORE02_LOOPBACK100: '100.1.1.2'
+  CORE02_CORE01_PORT: 'G1'
